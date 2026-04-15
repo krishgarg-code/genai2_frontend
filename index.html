@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Churn Prediction Dashboard</title>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        input,
+        button {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Customer Churn Prediction</h2>
+
+    <form id="churnForm">
+
+        <input type="number" placeholder="Account length" name="Account length" required />
+        <input type="number" placeholder="Area code" name="Area code" required />
+        <input type="number" placeholder="International plan (0/1)" name="International plan" required />
+        <input type="number" placeholder="Voice mail plan (0/1)" name="Voice mail plan" required />
+        <input type="number" placeholder="Number vmail messages" name="Number vmail messages" required />
+
+        <input type="number" placeholder="Total day minutes" name="Total day minutes" required />
+        <input type="number" placeholder="Total day calls" name="Total day calls" required />
+        <input type="number" placeholder="Total day charge" name="Total day charge" required />
+
+        <input type="number" placeholder="Total eve minutes" name="Total eve minutes" required />
+        <input type="number" placeholder="Total eve calls" name="Total eve calls" required />
+        <input type="number" placeholder="Total eve charge" name="Total eve charge" required />
+
+        <input type="number" placeholder="Total night minutes" name="Total night minutes" required />
+        <input type="number" placeholder="Total night calls" name="Total night calls" required />
+        <input type="number" placeholder="Total night charge" name="Total night charge" required />
+
+        <input type="number" placeholder="Total intl minutes" name="Total intl minutes" required />
+        <input type="number" placeholder="Total intl calls" name="Total intl calls" required />
+        <input type="number" placeholder="Total intl charge" name="Total intl charge" required />
+
+        <input type="number" placeholder="Customer service calls" name="Customer service calls" required />
+
+        <!-- USER EMAIL -->
+        <input type="email" placeholder="Enter your email" name="email" required />
+
+        <button type="submit">Predict</button>
+
+    </form>
+
+    <script>
+        document.getElementById("churnForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            let data = {};
+
+            formData.forEach((value, key) => {
+                data[key] = isNaN(value) ? value : Number(value);
+            });
+
+            await fetch("https://genai1234.app.n8n.cloud/webhook/churn-predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            });
+
+            alert("Prediction sent! Check your email.");
+        });
+    </script>
+
+</body>
+
+</html>
