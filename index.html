@@ -1,28 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Churn Prediction Dashboard</title>
+    <meta charset="UTF-8">
+    <title>AI Churn Predictor</title>
+
     <style>
         body {
-            font-family: Arial;
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        input,
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 30px;
+            border-radius: 16px;
+            width: 420px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 6px 0;
+            border: none;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #888;
+        }
+
         button {
             width: 100%;
-            margin: 5px 0;
-            padding: 10px;
+            padding: 14px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 10px;
+            background: #fff;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #ddd;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            margin-top: 10px;
+            opacity: 0.7;
         }
     </style>
 </head>
 
 <body>
 
-    <h2>Customer Churn Prediction</h2>
+<div class="container">
+
+    <h2>🚀 AI Churn Predictor</h2>
 
     <form id="churnForm">
 
@@ -50,36 +102,51 @@
 
         <input type="number" placeholder="Customer service calls" name="Customer service calls" required />
 
-        <!-- USER EMAIL -->
         <input type="email" placeholder="Enter your email" name="email" required />
 
-        <button type="submit">Predict</button>
+        <button type="submit">Predict Now</button>
 
     </form>
 
-    <script>
-        document.getElementById("churnForm").addEventListener("submit", async function (e) {
-            e.preventDefault();
+    <div class="footer">
+        Built with AI ⚡
+    </div>
 
-            const formData = new FormData(this);
-            let data = {};
+</div>
 
-            formData.forEach((value, key) => {
-                data[key] = isNaN(value) ? value : Number(value);
-            });
+<script>
+document.getElementById("churnForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-            await fetch("https://genai1234.app.n8n.cloud/webhook/churn-predict", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            });
+    const button = document.querySelector("button");
+    button.innerText = "Processing...";
+    button.disabled = true;
 
-            alert("Prediction sent! Check your email.");
+    const formData = new FormData(this);
+    let data = {};
+
+    formData.forEach((value, key) => {
+        data[key] = isNaN(value) ? value : Number(value);
+    });
+
+    try {
+        await fetch("https://genai1234.app.n8n.cloud/webhook/churn-predict", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
         });
-    </script>
+
+        alert("✅ Report sent to your email!");
+    } catch (err) {
+        alert("❌ Something went wrong");
+    }
+
+    button.innerText = "Predict Now";
+    button.disabled = false;
+});
+</script>
 
 </body>
-
 </html>
