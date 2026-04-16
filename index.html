@@ -151,6 +151,37 @@
         </div>
     </footer>
 
+    <!-- Chat Toggle Button -->
+    <button class="chat-toggle" id="chatToggle" onclick="toggleChat()" title="Open AI Assistant">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </button>
+
+    <!-- Chatbot Container -->
+    <div class="chat-container hidden" id="chatContainer">
+        <div class="chat-header" onclick="toggleChat()" style="cursor: pointer;" title="Close Chat">
+            <h4>AI Assistant</h4>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="dot dot-green"></div>
+                <!-- close icon -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;opacity:0.7;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+        </div>
+        <div id="messages" class="chat-messages">
+            <div class="message ai-message">Hi! I can help analyze your customer data. Ask me anything.</div>
+        </div>
+        <div class="chat-input-area">
+            <input id="userInput" type="text" placeholder="Ask about customer..." onkeypress="handleChatEnter(event)">
+            <button class="chat-submit" onclick="sendMessage()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     <div id="notification" class="notification"></div>
 
     <script>
@@ -225,17 +256,26 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify({
+                        type: "predict",
+                        ...data
+                    })
                 });
 
-                if (response.ok) {
-                    showNotification("Analysis complete! The intelligence report has been sent to your email. 📩", "success");
-                    churnForm.reset();
-                } else {
-                    throw new Error("Failed to send");
-                }
+                const result = await response.json();
+
+                // 🔥 store EVERYTHING
+                localStorage.setItem("churnData", JSON.stringify({
+                    report: result.text,
+                    probability: result.probability,
+                    userInput: data
+                }));
+
+                showNotification("Analysis complete! Report stored & sent 📩", "success");
+                churnForm.reset();
+
             } catch (err) {
-                showNotification("Deep analysis failed. Please check your connection and try again.", "error");
+                showNotification("Deep analysis failed. Please check your connection.", "error");
             }
 
             button.innerText = originalText;
@@ -254,6 +294,81 @@
                 }
             });
         });
+
+        function handleChatEnter(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const inputBox = document.getElementById("userInput");
+            const rawInput = inputBox.value.trim();
+            if (!rawInput) return;
+
+            const messagesDiv = document.getElementById("messages");
+
+            // Add user message
+            const userMsg = document.createElement("div");
+            userMsg.className = "message user-message";
+            userMsg.innerText = rawInput;
+            messagesDiv.appendChild(userMsg);
+            
+            inputBox.value = "";
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            const stored = localStorage.getItem("churnData");
+            if (!stored) {
+                const aiMsg = document.createElement("div");
+                aiMsg.className = "message ai-message";
+                aiMsg.innerText = "Please submit data first.";
+                messagesDiv.appendChild(aiMsg);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                return;
+            }
+
+            const data = JSON.parse(stored);
+
+            try {
+                // 🔥 CALL AI API
+                const res = await fetch("https://genai1234.app.n8n.cloud/webhook/churn-predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        type: "chat",
+                        question: rawInput,
+                        userData: data.userInput,
+                        probability: data.probability,
+                        report: data.report
+                    })
+                });
+
+                const result = await res.json();
+
+                const aiMsg = document.createElement("div");
+                aiMsg.className = "message ai-message";
+                aiMsg.innerHTML = result.reply || result.text || "No response";
+                messagesDiv.appendChild(aiMsg);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            } catch (err) {
+                console.error("AI API Error:", err);
+                const aiMsg = document.createElement("div");
+                aiMsg.className = "message ai-message";
+                aiMsg.innerText = "Failed to connect to the AI API. Be sure to configure YOUR_CHAT_WEBHOOK_URL.";
+                messagesDiv.appendChild(aiMsg);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+        }
+
+        function toggleChat() {
+            const container = document.getElementById("chatContainer");
+            container.classList.toggle("hidden");
+            if (!container.classList.contains("hidden")) {
+                document.getElementById("userInput").focus();
+            }
+        }
     </script>
 </body>
 </html>
