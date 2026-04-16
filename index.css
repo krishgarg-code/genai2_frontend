@@ -517,6 +517,21 @@ input.error {
     border-bottom-left-radius: 4px;
 }
 
+.blinking-cursor {
+    display: inline-block;
+    width: 6px;
+    height: 14px;
+    background-color: var(--text-primary);
+    animation: blink 1s step-end infinite;
+    vertical-align: middle;
+    margin-left: 2px;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
 .user-message {
     background: var(--accent-color);
     color: black;

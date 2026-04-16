@@ -23,7 +23,7 @@
         <nav>
             <!-- Navigation links removed as requested -->
         </nav>
-        <a href="mailto:krishg0150@gmail.com" class="btn-contact">Contact Sales</a>
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=krishg0150@gmail.com" target="_blank" class="btn-contact">Contact Sales</a>
     </header>
 
     <!-- Hero Section -->
@@ -329,6 +329,12 @@
 
             const data = JSON.parse(stored);
 
+            const typingMsg = document.createElement("div");
+            typingMsg.className = "message ai-message";
+            typingMsg.innerHTML = '<span class="blinking-cursor"></span>';
+            messagesDiv.appendChild(typingMsg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
             try {
                 // 🔥 CALL AI API
                 const res = await fetch("https://genai1234.app.n8n.cloud/webhook/churn-predict", {
@@ -346,13 +352,43 @@
                 });
 
                 const result = await res.json();
+                messagesDiv.removeChild(typingMsg);
 
                 const aiMsg = document.createElement("div");
                 aiMsg.className = "message ai-message";
-                aiMsg.innerHTML = result.reply || result.text || "No response";
+                
+                const textSpan = document.createElement("span");
+                const cursorSpan = document.createElement("span");
+                cursorSpan.className = "blinking-cursor";
+                
+                aiMsg.appendChild(textSpan);
+                aiMsg.appendChild(cursorSpan);
                 messagesDiv.appendChild(aiMsg);
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+                const replyText = result.reply || result.text || "No response";
+                let i = 0;
+
+                function typeChar() {
+                    if (i < replyText.length) {
+                        if (replyText[i] === '<') {
+                            const closeIdx = replyText.indexOf('>', i);
+                            if (closeIdx !== -1) {
+                                i = closeIdx;
+                            }
+                        }
+                        textSpan.innerHTML = replyText.substring(0, i + 1);
+                        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                        i++;
+                        setTimeout(typeChar, 15);
+                    } else {
+                        if (aiMsg.contains(cursorSpan)) {
+                            aiMsg.removeChild(cursorSpan);
+                        }
+                    }
+                }
+                typeChar();
             } catch (err) {
+                messagesDiv.removeChild(typingMsg);
                 console.error("AI API Error:", err);
                 const aiMsg = document.createElement("div");
                 aiMsg.className = "message ai-message";
